@@ -6,6 +6,8 @@ import { AccountModule } from './modules/account/account.module';
 import { ProductModule } from './modules/product/product.module';
 import { VoucherModule } from './modules/voucher/voucher.module';
 import { ReportModule } from './modules/report/report.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SeedModule } from './modules/seed/seed.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { ReportModule } from './modules/report/report.module';
     ProductModule,
     VoucherModule,
     ReportModule,
+    DashboardModule,
+    SeedModule,
   ],
 })
 export class AppModule {}
