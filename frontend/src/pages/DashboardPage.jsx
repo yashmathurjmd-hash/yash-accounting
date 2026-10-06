@@ -11,6 +11,7 @@ export default function DashboardPage() {
     cash: 0,
     bank: 0,
   });
+
   const [recent, setRecent] = useState([]);
 
   useEffect(() => {

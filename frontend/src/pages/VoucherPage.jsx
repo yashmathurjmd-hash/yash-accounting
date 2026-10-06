@@ -1,10 +1,8 @@
-import { Button, Card, DatePicker, Form, Input, Select, Table, message } from 'antd';
 import { useEffect } from 'react';
+import { Button, Card, DatePicker, Form, Input, Select, Table, message } from 'antd';
 import { useAppStore } from '../store';
 
-const voucherOptions = [
-  'Sales', 'Purchase', 'Sales Return', 'Purchase Return', 'Estimate', 'Order', 'Challan', 'Receipt', 'Payment', 'Contra', 'Journal', 'Expense'
-];
+const voucherOptions = ['Sales', 'Purchase', 'Sales Return', 'Purchase Return', 'Estimate', 'Order', 'Challan', 'Receipt', 'Payment', 'Contra', 'Journal', 'Expense'];
 const bookOptions = ['PAKKA', 'KACCHA', 'MIXED'];
 
 const dataSource = [
@@ -34,7 +32,6 @@ export default function VoucherPage() {
   return (
     <div>
       <h2 style={{ marginBottom: 20 }}>Voucher Entry</h2>
-
       <Card>
         <Form layout="vertical">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(180px, 1fr))', gap: 16 }}>

@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                 String       @id @default(uuid())
+  name               String
+  shortName          String?
+  gstin              String?
+  financialYearStart DateTime?
+  financialYearEnd   DateTime?
+  bookTypes          String[]     @default(["PAKKA", "KACCHA", "MIXED"])
+  status             String       @default("ACTIVE")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  users             User[]
+  accounts          Account[]
+  products          Product[]
+  vouchers          Voucher[]
+  ledgerEntries     LedgerEntry[]
+  stockEntries      StockEntry[]
+  gstEntries        GstEntry[]
+  stockBalance      StockBalance[]
+  syncQueue         SyncQueue[]
+  auditLogs         AuditLog[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id])
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model Account {
+  id             String        @id @default(uuid())
+  companyId      String
+  company        Company       @relation(fields: [companyId], references: [id])
+  groupId        String?
+  code           String
+  name           String
+  accountType    String?
+  gstin          String?
+  openingBalance Float         @default(0)
+  balanceType    String?
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+
+  vouchersAsParty  Voucher[] @relation("VoucherParty")
+  ledgerEntries    LedgerEntry[]
+  gstEntries       GstEntry[]
+  partyOutstanding PartyOutstanding[]
+}
+
+model Product {
+  id            String        @id @default(uuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  code          String
+  name          String
+  hsnCode       String?
+  unitId        String?
+  gstRate       Float         @default(0)
+  purchaseRate  Float         @default(0)
+  saleRate      Float         @default(0)
+  mrp           Float?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+
+  voucherItems  VoucherItem[]
+  stockEntries  StockEntry[]
+  stockBalance  StockBalance[]
+}
+
+model Voucher {
+  id          String        @id @default(uuid())
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id])
+  bookType    String
+  voucherType String
+  voucherNo   String
+  voucherDate DateTime
+  partyId     String?
+  party       Account?      @relation("VoucherParty", fields: [partyId], references: [id])
+  referenceNo String?
+  narration   String?
+  totalAmount Float         @default(0)
+  gstAmount   Float         @default(0)
+  status      String        @default("POSTED")
+  revisionNo  Int           @default(1)
+  createdBy   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  items       VoucherItem[]
+  ledger      LedgerEntry[]
+  stock       StockEntry[]
+  gst         GstEntry[]
+  outstanding PartyOutstanding[]
+
+  @@unique([companyId, voucherType, voucherNo])
+}
+
+model VoucherItem {
+  id          String   @id @default(uuid())
+  voucherId   String
+  voucher     Voucher  @relation(fields: [voucherId], references: [id])
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  accountId   String?
+  description String?
+  quantity    Float    @default(0)
+  unitPrice   Float    @default(0)
+  amount      Float    @default(0)
+  gstRate     Float    @default(0)
+  gstAmount   Float    @default(0)
+  itemType    String?
+  createdAt   DateTime @default(now())
+}
+
+model LedgerEntry {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  voucherId String
+  voucher   Voucher  @relation(fields: [voucherId], references: [id])
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  entryDate DateTime
+  drAmount  Float    @default(0)
+  crAmount  Float    @default(0)
+  narration String?
+  createdAt DateTime @default(now())
+}
+
+model StockEntry {
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  voucherId  String
+  voucher    Voucher  @relation(fields: [voucherId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  warehouseId String?
+  quantity   Float    @default(0)
+  rate       Float    @default(0)
+  stockType  String
+  entryDate  DateTime
+  createdAt  DateTime @default(now())
+}
+
+model GstEntry {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  voucherId String
+  voucher   Voucher  @relation(fields: [voucherId], references: [id])
+  gstType   String
+  taxAmount Float    @default(0)
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model PartyOutstanding {
+  id                 String   @id @default(uuid())
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id])
+  partyId            String
+  party              Account  @relation(fields: [partyId], references: [id])
+  voucherId          String
+  voucher            Voucher  @relation(fields: [voucherId], references: [id])
+  outstandingAmount Float    @default(0)
+  dueDate            DateTime?
+  status             String   @default("OPEN")
+  createdAt          DateTime @default(now())
+}
+
+model StockBalance {
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  warehouseId String?
+  quantity   Float    @default(0)
+  avgRate    Float    @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+model SyncQueue {
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  entityType String
+  entityId   String
+  actionType String
+  payload    Json
+  revisionNo Int
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  syncedAt   DateTime?
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  entityType String
+  entityId   String
+  actionType String
+  oldValue   Json?
+  newValue   Json?
+  changedBy  String?
+  createdAt  DateTime @default(now())
+}
