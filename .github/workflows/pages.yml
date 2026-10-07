@@ -1,10 +1,10 @@
-name: Deploy YASH Accounting frontend
+name: Deploy YASH Accounting V50
 
 on:
   push:
     branches: [main]
     paths:
-      - 'frontend/**'
+      - 'YASH_Accounting_V50_Voucher_Polish.zip'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -20,24 +20,21 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
-      - name: Checkout
+      - name: Checkout V50
         uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Upload Pages artifact
+
+      - name: Extract V50 build
+        run: |
+          rm -rf v50-site
+          mkdir v50-site
+          unzip -q YASH_Accounting_V50_Voucher_Polish.zip -d v50-site
+          test -f v50-site/index.html
+
+      - name: Upload V50 Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/dist
+          path: v50-site
 
   deploy:
     environment:
@@ -46,6 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy V50 to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
